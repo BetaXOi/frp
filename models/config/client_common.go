@@ -48,6 +48,7 @@ type ClientCommonConf struct {
 	Protocol          string
 	HeartBeatInterval int64
 	HeartBeatTimeout  int64
+	UUID              string
 }
 
 func GetDeaultClientCommonConf() *ClientCommonConf {
@@ -73,6 +74,7 @@ func GetDeaultClientCommonConf() *ClientCommonConf {
 		Protocol:          "tcp",
 		HeartBeatInterval: 30,
 		HeartBeatTimeout:  90,
+		UUID:              "",
 	}
 }
 
@@ -216,6 +218,16 @@ func LoadClientCommonConf(conf ini.File) (cfg *ClientCommonConf, err error) {
 			return
 		} else {
 			cfg.HeartBeatInterval = v
+		}
+	}
+
+	tmpStr, ok = conf.Get("common", "uuid")
+	if ok {
+		cfg.UUID = tmpStr
+	} else {
+		tmpStr, ok = conf.Get("common", "UUID")
+		if ok {
+			cfg.UUID = tmpStr
 		}
 	}
 

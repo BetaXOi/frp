@@ -43,7 +43,7 @@ var (
 var usage string = `frpc is the client of frp
 
 Usage: 
-    frpc [-c config_file] [-L log_file] [--log-level=<log_level>] [--server-addr=<server_addr>]
+    frpc [-c config_file] [-L log_file] [--log-level=<log_level>] [--server-addr=<server_addr>] [--uuid=<uuid>]
     frpc [-c config_file] --reload
     frpc -h | --help
     frpc -v | --version
@@ -53,6 +53,7 @@ Options:
     -L log_file                 set output log file, including console
     --log-level=<log_level>     set log level: debug, info, warn, error
     --server-addr=<server_addr> addr which frps is listening for, example: 0.0.0.0:7000
+    --uuid=<uuid>               uuid of frpc
     --reload                    reload configure file without program exit
     -h --help                   show this screen
     -v --version                show version

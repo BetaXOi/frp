@@ -56,40 +56,59 @@ func (cm *ControlManager) GetById(runId string) (ctl *Control, ok bool) {
 	return
 }
 
-type ProxyManager struct {
+type Client struct {
+	runId string
 	// proxies indexed by proxy name
 	pxys map[string]Proxy
+}
+
+type ProxyManager struct {
+	clients map[string]Client
 
 	mu sync.RWMutex
 }
 
 func NewProxyManager() *ProxyManager {
 	return &ProxyManager{
-		pxys: make(map[string]Proxy),
+		clients: make(map[string]Client),
 	}
 }
 
-func (pm *ProxyManager) Add(name string, pxy Proxy) error {
+func (pm *ProxyManager) Add(runId string, name string, pxy Proxy) error {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	if _, ok := pm.pxys[name]; ok {
-		return fmt.Errorf("proxy name [%s] is already in use", name)
+	if _, ok := pm.clients[runId]; ok {
+		if _, ok := pm.clients[runId].pxys[name]; ok {
+			return fmt.Errorf("proxy name [%s] is already in use", name)
+		}
+	} else {
+		client := Client{
+			runId: runId,
+			pxys:  make(map[string]Proxy),
+		}
+		pm.clients[runId] = client
 	}
 
-	pm.pxys[name] = pxy
+	pm.clients[runId].pxys[name] = pxy
 	return nil
 }
 
-func (pm *ProxyManager) Del(name string) {
+func (pm *ProxyManager) Del(runId string, name string) {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
-	delete(pm.pxys, name)
+
+	delete(pm.clients[runId].pxys, name)
+
+	if len(pm.clients[runId].pxys) == 0 {
+		delete(pm.clients, runId)
+	}
 }
 
-func (pm *ProxyManager) GetByName(name string) (pxy Proxy, ok bool) {
+func (pm *ProxyManager) GetByName(runId string, name string) (pxy Proxy, ok bool) {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
-	pxy, ok = pm.pxys[name]
+
+	pxy, ok = pm.clients[runId].pxys[name]
 	return
 }
 

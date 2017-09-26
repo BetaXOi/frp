@@ -269,8 +269,8 @@ func (ctl *Control) stoper() {
 	defer ctl.mu.Unlock()
 	for _, pxy := range ctl.proxies {
 		pxy.Close()
-		ctl.svr.DelProxy(pxy.GetName())
-		StatsCloseProxy(pxy.GetName(), pxy.GetConf().GetBaseInfo().ProxyType)
+		ctl.svr.DelProxy(ctl.runId, pxy.GetName())
+		StatsCloseProxy(ctl.runId, pxy.GetName(), pxy.GetConf().GetBaseInfo().ProxyType)
 	}
 
 	ctl.allShutdown.Done()
@@ -316,7 +316,7 @@ func (ctl *Control) manager() {
 					ctl.conn.Warn("new proxy [%s] error: %v", m.ProxyName, err)
 				} else {
 					ctl.conn.Info("new proxy [%s] success", m.ProxyName)
-					StatsNewProxy(m.ProxyName, m.ProxyType)
+					StatsNewProxy(ctl.runId, m.ProxyName, m.ProxyType)
 				}
 				ctl.sendCh <- resp
 			case *msg.CloseProxy:
@@ -356,7 +356,7 @@ func (ctl *Control) RegisterProxy(pxyMsg *msg.NewProxy) (err error) {
 		}
 	}()
 
-	err = ctl.svr.RegisterProxy(pxyMsg.ProxyName, pxy)
+	err = ctl.svr.RegisterProxy(ctl.runId, pxyMsg.ProxyName, pxy)
 	if err != nil {
 		return err
 	}
@@ -377,8 +377,8 @@ func (ctl *Control) CloseProxy(closeMsg *msg.CloseProxy) (err error) {
 	}
 
 	pxy.Close()
-	ctl.svr.DelProxy(pxy.GetName())
+	ctl.svr.DelProxy(ctl.runId, pxy.GetName())
 	delete(ctl.proxies, closeMsg.ProxyName)
-	StatsCloseProxy(pxy.GetName(), pxy.GetConf().GetBaseInfo().ProxyType)
+	StatsCloseProxy(ctl.runId, pxy.GetName(), pxy.GetConf().GetBaseInfo().ProxyType)
 	return
 }

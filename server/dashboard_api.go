@@ -172,7 +172,7 @@ func getProxyStatsByType(proxyType string) (proxyInfos []*ProxyStatsInfo) {
 	proxyInfos = make([]*ProxyStatsInfo, 0, len(proxyStats))
 	for _, ps := range proxyStats {
 		proxyInfo := &ProxyStatsInfo{}
-		if pxy, ok := ServerService.pxyManager.GetByName(ps.Name); ok {
+		if pxy, ok := ServerService.pxyManager.GetByName(ps.RunId, ps.Name); ok {
 			proxyInfo.Conf = pxy.GetConf()
 			proxyInfo.Status = consts.Online
 		} else {
@@ -222,4 +222,66 @@ func apiProxyTraffic(w http.ResponseWriter, r *http.Request, params httprouter.P
 
 	buf, _ = json.Marshal(&res)
 	w.Write(buf)
+}
+
+type ProxyStatsInfo2 struct {
+	Name   string           `json:"name"`
+	Conf   config.ProxyConf `json:"conf"`
+	Status string           `json:"status"`
+}
+
+type ProxyClientStatsInfo struct {
+	RunId   string             `json:"UUID"`
+	Proxies []*ProxyStatsInfo2 `json:"proxies"`
+}
+
+type GetProxyClientResp struct {
+	GeneralResponse
+	Clients []*ProxyClientStatsInfo `json:"client"`
+}
+
+// api/proxy/client
+func apiProxyClient(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var (
+		buf []byte
+		res GetProxyClientResp
+	)
+	defer func() {
+		log.Info("Http response [/api/proxy/client]: code [%d]", res.Code)
+	}()
+	log.Info("Http request: [/api/proxy/client]")
+
+	res.Clients = getProxyClientStats()
+
+	buf, _ = json.Marshal(&res)
+	w.Write(buf)
+}
+
+func getProxyClientStats() (ClientInfos []*ProxyClientStatsInfo) {
+	clients := StatsGetProxyClients()
+	ClientInfos = make([]*ProxyClientStatsInfo, 0, len(clients))
+
+	for _, client := range clients {
+		proxyClientInfo := &ProxyClientStatsInfo{}
+		proxyClientInfo.RunId = client.RunId
+
+		proxyInfos := make([]*ProxyStatsInfo2, 0, len(client.ProxyStats))
+		ClientInfos = append(ClientInfos, proxyClientInfo)
+
+		for _, ps := range client.ProxyStats {
+			proxyInfo := &ProxyStatsInfo2{}
+			if pxy, ok := ServerService.pxyManager.GetByName(client.RunId, ps.Name); ok {
+				proxyInfo.Conf = pxy.GetConf()
+				proxyInfo.Status = consts.Online
+			} else {
+				proxyInfo.Status = consts.Offline
+			}
+			proxyInfo.Name = ps.Name
+			proxyInfos = append(proxyInfos, proxyInfo)
+		}
+
+		proxyClientInfo.Proxies = proxyInfos
+	}
+
+	return
 }

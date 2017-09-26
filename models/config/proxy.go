@@ -270,7 +270,7 @@ func (cfg *DomainConf) check() (err error) {
 // Local service info
 type LocalSvrConf struct {
 	LocalIp   string `json:"-"`
-	LocalPort int    `json:"-"`
+	LocalPort int    `json:"local_port"`
 }
 
 func (cfg *LocalSvrConf) compare(cmp *LocalSvrConf) bool {
@@ -279,6 +279,10 @@ func (cfg *LocalSvrConf) compare(cmp *LocalSvrConf) bool {
 		return false
 	}
 	return true
+}
+
+func (cfg *LocalSvrConf) LoadFromMsg(pMsg *msg.NewProxy) {
+	cfg.LocalPort = int(pMsg.LocalPort)
 }
 
 func (cfg *LocalSvrConf) LoadFromFile(name string, section ini.Section) (err error) {
@@ -294,6 +298,10 @@ func (cfg *LocalSvrConf) LoadFromFile(name string, section ini.Section) (err err
 		return fmt.Errorf("Parse conf error: proxy [%s] local_port not found", name)
 	}
 	return nil
+}
+
+func (cfg *LocalSvrConf) UnMarshalToMsg(pMsg *msg.NewProxy) {
+	pMsg.LocalPort = int64(cfg.LocalPort)
 }
 
 type PluginConf struct {
@@ -358,6 +366,7 @@ func (cfg *TcpProxyConf) Compare(cmp ProxyConf) bool {
 func (cfg *TcpProxyConf) LoadFromMsg(pMsg *msg.NewProxy) {
 	cfg.BaseProxyConf.LoadFromMsg(pMsg)
 	cfg.BindInfoConf.LoadFromMsg(pMsg)
+	cfg.LocalSvrConf.LoadFromMsg(pMsg)
 }
 
 func (cfg *TcpProxyConf) LoadFromFile(name string, section ini.Section) (err error) {
@@ -379,6 +388,7 @@ func (cfg *TcpProxyConf) LoadFromFile(name string, section ini.Section) (err err
 func (cfg *TcpProxyConf) UnMarshalToMsg(pMsg *msg.NewProxy) {
 	cfg.BaseProxyConf.UnMarshalToMsg(pMsg)
 	cfg.BindInfoConf.UnMarshalToMsg(pMsg)
+	cfg.LocalSvrConf.UnMarshalToMsg(pMsg)
 }
 
 func (cfg *TcpProxyConf) Check() (err error) {
@@ -429,6 +439,7 @@ func (cfg *UdpProxyConf) LoadFromFile(name string, section ini.Section) (err err
 func (cfg *UdpProxyConf) UnMarshalToMsg(pMsg *msg.NewProxy) {
 	cfg.BaseProxyConf.UnMarshalToMsg(pMsg)
 	cfg.BindInfoConf.UnMarshalToMsg(pMsg)
+	cfg.LocalSvrConf.UnMarshalToMsg(pMsg)
 }
 
 func (cfg *UdpProxyConf) Check() (err error) {

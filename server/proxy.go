@@ -36,6 +36,7 @@ type Proxy interface {
 	Run() error
 	GetControl() *Control
 	GetName() string
+	GetRunId() string
 	GetConf() config.ProxyConf
 	GetWorkConnFromPool() (workConn frpNet.Conn, err error)
 	Close()
@@ -56,6 +57,10 @@ func (pxy *BaseProxy) GetName() string {
 
 func (pxy *BaseProxy) GetControl() *Control {
 	return pxy.ctl
+}
+
+func (pxy *BaseProxy) GetRunId() string {
+	return pxy.ctl.runId
 }
 
 func (pxy *BaseProxy) Close() {
@@ -165,6 +170,8 @@ func (pxy *TcpProxy) Run() error {
 	if err != nil {
 		return err
 	}
+	curPort := listener.Addr.(*net.TCPAddr).Port
+	pxy.cfg.RemotePort = int64(curPort)
 	listener.AddLogPrefix(pxy.name)
 	pxy.listeners = append(pxy.listeners, listener)
 	pxy.Info("tcp proxy listen port [%d]", pxy.cfg.RemotePort)
@@ -375,7 +382,7 @@ func (pxy *UdpProxy) Run() (err error) {
 				if errRet := errors.PanicToError(func() {
 					pxy.Trace("get udp message from workConn: %s", m.Content)
 					pxy.readCh <- m
-					StatsAddTrafficOut(pxy.GetName(), int64(len(m.Content)))
+					StatsAddTrafficOut(pxy.GetRunId(), pxy.GetName(), int64(len(m.Content)))
 				}); errRet != nil {
 					conn.Close()
 					pxy.Info("reader goroutine for udp work connection closed")
@@ -401,7 +408,7 @@ func (pxy *UdpProxy) Run() (err error) {
 					return
 				} else {
 					pxy.Trace("send message to udp workConn: %s", udpMsg.Content)
-					StatsAddTrafficIn(pxy.GetName(), int64(len(udpMsg.Content)))
+					StatsAddTrafficIn(pxy.GetRunId(), pxy.GetName(), int64(len(udpMsg.Content)))
 					continue
 				}
 			case <-ctx.Done():
@@ -505,10 +512,10 @@ func HandleUserTcpConnection(pxy Proxy, userConn frpNet.Conn) {
 	pxy.Debug("join connections, workConn(l[%s] r[%s]) userConn(l[%s] r[%s])", workConn.LocalAddr().String(),
 		workConn.RemoteAddr().String(), userConn.LocalAddr().String(), userConn.RemoteAddr().String())
 
-	StatsOpenConnection(pxy.GetName())
+	StatsOpenConnection(pxy.GetRunId(), pxy.GetName())
 	inCount, outCount := frpIo.Join(local, userConn)
-	StatsCloseConnection(pxy.GetName())
-	StatsAddTrafficIn(pxy.GetName(), inCount)
-	StatsAddTrafficOut(pxy.GetName(), outCount)
+	StatsCloseConnection(pxy.GetRunId(), pxy.GetName())
+	StatsAddTrafficIn(pxy.GetRunId(), pxy.GetName(), inCount)
+	StatsAddTrafficOut(pxy.GetRunId(), pxy.GetName(), outCount)
 	pxy.Debug("join connections closed")
 }

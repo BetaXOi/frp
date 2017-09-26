@@ -92,6 +92,9 @@ func NewControl(svr *Service, pxyCfgs map[string]config.ProxyConf, vistorCfgs ma
 		User:      config.ClientCommonCfg.User,
 		Version:   version.Full(),
 	}
+	if config.ClientCommonCfg.UUID != "" {
+		loginMsg.RunId = config.ClientCommonCfg.UUID
+	}
 	return &Control{
 		svr:        svr,
 		loginMsg:   loginMsg,
@@ -249,7 +252,9 @@ func (ctl *Control) login() (err error) {
 	now := time.Now().Unix()
 	ctl.loginMsg.PrivilegeKey = util.GetAuthKey(config.ClientCommonCfg.PrivilegeToken, now)
 	ctl.loginMsg.Timestamp = now
-	ctl.loginMsg.RunId = ctl.getRunId()
+	if ctl.loginMsg.RunId == "" {
+		ctl.loginMsg.RunId = ctl.getRunId()
+	}
 
 	if err = msg.WriteMsg(conn, ctl.loginMsg); err != nil {
 		return err

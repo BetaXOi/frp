@@ -45,6 +45,7 @@ func RunDashboardServer(addr string, port int64) (err error) {
 	router.GET("/api/proxy/http", frpNet.HttprouterBasicAuth(apiProxyHttp, user, passwd))
 	router.GET("/api/proxy/https", frpNet.HttprouterBasicAuth(apiProxyHttps, user, passwd))
 	router.GET("/api/proxy/traffic/:name", frpNet.HttprouterBasicAuth(apiProxyTraffic, user, passwd))
+	router.GET("/api/proxy/client", frpNet.HttprouterBasicAuth(apiProxyClient, user, passwd))
 
 	// view
 	router.Handler("GET", "/favicon.ico", http.FileServer(assets.FileSystem))

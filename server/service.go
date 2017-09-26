@@ -226,8 +226,8 @@ func (svr *Service) HandleListener(l frpNet.Listener) {
 }
 
 func (svr *Service) RegisterControl(ctlConn frpNet.Conn, loginMsg *msg.Login) (err error) {
-	ctlConn.Info("client login info: ip [%s] version [%s] hostname [%s] os [%s] arch [%s]",
-		ctlConn.RemoteAddr().String(), loginMsg.Version, loginMsg.Hostname, loginMsg.Os, loginMsg.Arch)
+	ctlConn.Info("client login info: ip [%s] version [%s] hostname [%s] os [%s] arch [%s] runid [%s]",
+		ctlConn.RemoteAddr().String(), loginMsg.Version, loginMsg.Hostname, loginMsg.Os, loginMsg.Arch, loginMsg.RunId)
 
 	// Check client version.
 	if ok, msg := version.Compat(loginMsg.Version); !ok {
@@ -285,10 +285,10 @@ func (svr *Service) RegisterVistorConn(vistorConn frpNet.Conn, newMsg *msg.NewVi
 		newMsg.UseEncryption, newMsg.UseCompression)
 }
 
-func (svr *Service) RegisterProxy(name string, pxy Proxy) error {
-	return svr.pxyManager.Add(name, pxy)
+func (svr *Service) RegisterProxy(runId string, name string, pxy Proxy) error {
+	return svr.pxyManager.Add(runId, name, pxy)
 }
 
-func (svr *Service) DelProxy(name string) {
-	svr.pxyManager.Del(name)
+func (svr *Service) DelProxy(runId string, name string) {
+	svr.pxyManager.Del(runId, name)
 }
