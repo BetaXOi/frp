@@ -91,9 +91,11 @@ func NewControl(svr *Service, pxyCfgs map[string]config.ProxyConf, vistorCfgs ma
 		PoolCount: config.ClientCommonCfg.PoolCount,
 		User:      config.ClientCommonCfg.User,
 		Version:   version.Full(),
+		RunIdAuto: true,
 	}
 	if config.ClientCommonCfg.UUID != "" {
 		loginMsg.RunId = config.ClientCommonCfg.UUID
+		loginMsg.RunIdAuto = false
 	}
 	return &Control{
 		svr:        svr,

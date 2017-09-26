@@ -255,6 +255,11 @@ func (svr *Service) RegisterControl(ctlConn frpNet.Conn, loginMsg *msg.Login) (e
 		}
 	}
 
+	oldCtl, exist := svr.ctlManager.GetById(loginMsg.RunId)
+	if exist && oldCtl.status == "working" && oldCtl.loginMsg.RunIdAuto == false {
+		return fmt.Errorf("There is a old frpc[%s] client is online now, can not replace old client if UUID of fprc be specified in configure clearly", loginMsg.RunId)
+	}
+
 	ctl := NewControl(svr, ctlConn, loginMsg)
 
 	if oldCtl := svr.ctlManager.Add(loginMsg.RunId, ctl); oldCtl != nil {

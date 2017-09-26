@@ -275,6 +275,7 @@ func (ctl *Control) stoper() {
 
 	ctl.allShutdown.Done()
 	ctl.conn.Info("client exit success")
+	ctl.status = consts.Closed
 
 	StatsCloseClient()
 }
