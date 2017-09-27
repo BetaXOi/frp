@@ -76,3 +76,29 @@ func (svr *Service) apiReload(w http.ResponseWriter, r *http.Request, _ httprout
 	log.Info("success reload conf")
 	return
 }
+
+// api/info
+type InfoResp struct {
+	GeneralResponse
+	UUID       string `json:"uuid"`
+	ServerAddr string `json:"server_addr"`
+}
+
+func (svr *Service) apiInfo(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	var (
+		buf []byte
+		res InfoResp
+	)
+	defer func() {
+		log.Info("Http response [/api/info]: code [%d]", res.Code)
+		buf, _ = json.Marshal(&res)
+		w.Write(buf)
+	}()
+
+	log.Info("Http request: [/api/info]")
+
+	res.UUID = config.ClientCommonCfg.UUID
+	res.ServerAddr = config.ClientCommonCfg.ServerAddr
+
+	return
+}

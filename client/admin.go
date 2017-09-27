@@ -40,6 +40,9 @@ func (svr *Service) RunAdminServer(addr string, port int64) (err error) {
 	// api, see dashboard_api.go
 	router.GET("/api/reload", frpNet.HttprouterBasicAuth(svr.apiReload, user, passwd))
 
+	// api, see dashboard_api.go
+	router.GET("/api/info", frpNet.HttprouterBasicAuth(svr.apiInfo, user, passwd))
+
 	address := fmt.Sprintf("%s:%d", addr, port)
 	server := &http.Server{
 		Addr:         address,

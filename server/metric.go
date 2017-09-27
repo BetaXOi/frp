@@ -116,16 +116,16 @@ func StatsNewClient(ctl *Control) {
 	clientStats, ok := globalStats.ClientStatistics[ctl.runId]
 	if !ok {
 		clientStats = &ClientStatistics{
-			RunId:  ctl.runId,
-			Direct: false,
+			RunId: ctl.runId,
 		}
 		clientStats.ProxyStatistics = make(map[string]*ProxyStatistics)
 		globalStats.ClientStatistics[ctl.runId] = clientStats
 	}
 	clientStats.ClientAddr = ctl.conn.RemoteAddr().String()
-	clientStats.Direct = false
 	if clientStats.ClientAddr == ctl.loginMsg.ClientAddr {
 		clientStats.Direct = true
+	} else {
+		clientStats.Direct = false
 	}
 }
 
