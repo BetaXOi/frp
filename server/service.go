@@ -226,8 +226,8 @@ func (svr *Service) HandleListener(l frpNet.Listener) {
 }
 
 func (svr *Service) RegisterControl(ctlConn frpNet.Conn, loginMsg *msg.Login) (err error) {
-	ctlConn.Info("client login info: ip [%s] version [%s] hostname [%s] os [%s] arch [%s] runid [%s]",
-		ctlConn.RemoteAddr().String(), loginMsg.Version, loginMsg.Hostname, loginMsg.Os, loginMsg.Arch, loginMsg.RunId)
+	ctlConn.Info("client login info: ip [%s] version [%s] hostname [%s] os [%s] arch [%s] runid [%s] client_addr [%s]",
+		ctlConn.RemoteAddr().String(), loginMsg.Version, loginMsg.Hostname, loginMsg.Os, loginMsg.Arch, loginMsg.RunId, loginMsg.ClientAddr)
 
 	// Check client version.
 	if ok, msg := version.Compat(loginMsg.Version); !ok {
@@ -270,7 +270,7 @@ func (svr *Service) RegisterControl(ctlConn frpNet.Conn, loginMsg *msg.Login) (e
 	ctl.Start()
 
 	// for statistics
-	StatsNewClient()
+	StatsNewClient(ctl)
 	return
 }
 

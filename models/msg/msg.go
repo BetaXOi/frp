@@ -77,6 +77,7 @@ type Login struct {
 	Timestamp    int64  `json:"timestamp"`
 	RunId        string `json:"run_id"`
 	RunIdAuto    bool   `json:"run_id_auto"`
+	ClientAddr   string `json:"client_addr"`
 
 	// Some global configures.
 	PoolCount int `json:"pool_count"`

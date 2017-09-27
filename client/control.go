@@ -257,6 +257,7 @@ func (ctl *Control) login() (err error) {
 	if ctl.loginMsg.RunId == "" {
 		ctl.loginMsg.RunId = ctl.getRunId()
 	}
+	ctl.loginMsg.ClientAddr = conn.LocalAddr().String()
 
 	if err = msg.WriteMsg(conn, ctl.loginMsg); err != nil {
 		return err

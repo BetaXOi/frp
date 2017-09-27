@@ -48,7 +48,9 @@ type ServerStatistics struct {
 }
 
 type ClientStatistics struct {
-	RunId string
+	RunId      string
+	ClientAddr string
+	Direct     bool
 
 	// statistics for different proxies
 	// key is proxy name
@@ -106,9 +108,23 @@ func StatsClearUselessInfo() {
 	}
 }
 
-func StatsNewClient() {
+func StatsNewClient(ctl *Control) {
 	if config.ServerCommonCfg.DashboardPort != 0 {
 		globalStats.ClientCounts.Inc(1)
+	}
+
+	clientStats, ok := globalStats.ClientStatistics[ctl.runId]
+	if !ok {
+		clientStats = &ClientStatistics{
+			RunId:  ctl.runId,
+			Direct: false,
+		}
+		clientStats.ProxyStatistics = make(map[string]*ProxyStatistics)
+		globalStats.ClientStatistics[ctl.runId] = clientStats
+	}
+	clientStats.ClientAddr = ctl.conn.RemoteAddr().String()
+	if clientStats.ClientAddr == ctl.loginMsg.ClientAddr {
+		clientStats.Direct = true
 	}
 }
 
@@ -331,6 +347,8 @@ func StatsGetProxyTraffic(name string) (res *ProxyTrafficInfo) {
 
 type ProxyClientStats struct {
 	RunId      string
+	ClientAddr string
+	Direct     bool
 	ProxyStats []*ProxyStats
 }
 
@@ -341,7 +359,9 @@ func StatsGetProxyClients() []*ProxyClientStats {
 
 	for _, clientStats := range globalStats.ClientStatistics {
 		client := &ProxyClientStats{
-			RunId: clientStats.RunId,
+			RunId:      clientStats.RunId,
+			ClientAddr: clientStats.ClientAddr,
+			Direct:     clientStats.Direct,
 		}
 		client.ProxyStats = make([]*ProxyStats, 0)
 		res = append(res, client)

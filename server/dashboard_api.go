@@ -231,13 +231,15 @@ type ProxyStatsInfo2 struct {
 }
 
 type ProxyClientStatsInfo struct {
-	RunId   string             `json:"UUID"`
-	Proxies []*ProxyStatsInfo2 `json:"proxies"`
+	RunId      string             `json:"UUID"`
+	ClientAddr string             `json:"address"`
+	Direct     bool               `json:"direct"`
+	Proxies    []*ProxyStatsInfo2 `json:"proxies"`
 }
 
 type GetProxyClientResp struct {
 	GeneralResponse
-	Clients []*ProxyClientStatsInfo `json:"client"`
+	Clients []*ProxyClientStatsInfo `json:"clients"`
 }
 
 // api/proxy/client
@@ -264,6 +266,8 @@ func getProxyClientStats() (ClientInfos []*ProxyClientStatsInfo) {
 	for _, client := range clients {
 		proxyClientInfo := &ProxyClientStatsInfo{}
 		proxyClientInfo.RunId = client.RunId
+		proxyClientInfo.ClientAddr = client.ClientAddr
+		proxyClientInfo.Direct = client.Direct
 
 		proxyInfos := make([]*ProxyStatsInfo2, 0, len(client.ProxyStats))
 		ClientInfos = append(ClientInfos, proxyClientInfo)
