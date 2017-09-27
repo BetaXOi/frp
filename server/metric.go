@@ -123,6 +123,7 @@ func StatsNewClient(ctl *Control) {
 		globalStats.ClientStatistics[ctl.runId] = clientStats
 	}
 	clientStats.ClientAddr = ctl.conn.RemoteAddr().String()
+	clientStats.Direct = false
 	if clientStats.ClientAddr == ctl.loginMsg.ClientAddr {
 		clientStats.Direct = true
 	}
